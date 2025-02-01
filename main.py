@@ -7,26 +7,20 @@ from uselect import poll, POLLIN
 from rp2 import bootsel_button
 
 class NeopixelController:
-    def __init__(self) -> None:
-        self.leds: list[NeoPixel] = []
-        self.start: list[int] = []
-        self.end: list[int] = []
-        self.led_strip: list[int] = []
-        self.led_count: list[int] = []
-        self.tasks: "dict[int, list[tuple[str, None | Task[None]]]]" = {}
-        self.modes: "dict[int, tuple[dict[str, object], ...]]" = {
-        }
-        self.character: str = ""
-
     def configure(
         self,
         config: "dict[int, tuple[tuple[int, dict[str, object]], ...]]",
         character: str,
     ) -> None:
-        self.tasks = {
+        self.leds: list[NeoPixel] = []
+        self.start: list[int] = []
+        self.end: list[int] = []
+        self.led_strip: list[int] = []
+        self.led_count: list[int] = []
+        self.tasks: "dict[int, list[tuple[str, None | Task[None]]]]" = {
             pin: list(("", None) for _ in attributes) for pin, attributes in config.items()
         }
-        self.modes = {
+        self.modes: "dict[int, tuple[dict[str, object], ...]]" = {
             pin: tuple(info[1] for info in attributes) for pin, attributes in config.items()
         }
         self.character: str = character
@@ -51,7 +45,7 @@ class NeopixelController:
                             task[1].cancel()
                         except RuntimeError:
                             pass
-                    self.tasks[pin][count] = (self.character, create_task(self.modes[pin][count][self.character]())) # type: ignore
+                    self.tasks[pin][count] = (self.character, create_task(self.modes[pin][count][self.character](count))) # type: ignore
 
     async def color_fade(
         self,
@@ -141,25 +135,25 @@ controller.configure(
     config={
         2: (
             (20, {
-                "D": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "E": lambda: controller.color_fade(0, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "G": lambda: controller.static_color(0, (0, 255, 0), 1, True, "D"),
+                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "X": lambda pin: controller.chasing(pin, (pin, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
             }),
             (2, {
-                "D": lambda: controller.color_fade(1, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "E": lambda: controller.chasing(1, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "X": lambda: controller.color_fade(1, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "D": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "E": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "X": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
             }),
             (2, {
-                "D": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "E": lambda: controller.color_fade(2, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
             }),
             (2, {
-                "D": lambda: controller.color_fade(3, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "E": lambda: controller.chasing(3, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "X": lambda: controller.color_fade(3, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "D": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "E": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "X": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
             }),
         ),
     },
