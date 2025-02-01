@@ -99,7 +99,6 @@ class NeopixelController:
                 distance: float = min(closest_position, self.led_count[strip] - closest_position)
                 equation = int(colors_length - colors_length * distance / length)
                 self.leds[self.led_strip[strip]][self.start[strip] + led] = intermediate_colors[equation] # type: ignore
-                print(equation)
             position = position + 1 / length if position < self.led_count[strip] else 0
             self.leds[self.led_strip[strip]].write()
             await sleep(step_delay / length)
