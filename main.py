@@ -5,7 +5,6 @@ from neopixel import NeoPixel
 from usys import stdin, print_exception
 from uselect import poll, POLLIN
 from rp2 import bootsel_button
-from math import sin
 
 class NeopixelController:
     def __init__(self) -> None:
@@ -57,7 +56,7 @@ class NeopixelController:
     async def color_fade(
         self,
         strip: int,
-        colors: "list[tuple[int, int, int]]",
+        colors: "tuple[tuple[int, int, int], ...]",
         mix: int,
         step_delay: float,
         delay: float,
@@ -96,16 +95,20 @@ class NeopixelController:
         mix: int,
         step_delay: float,
         length: int,
-        frequency: int,
     ) -> None:
         intermediate_colors: "list[list[int]]" = [[int((1 - fade_step / mix) * rgb_1 + fade_step / mix * rgb_2) for rgb_1, rgb_2 in zip(base_color, chasing_color)] for fade_step in range(mix + 1)]
-        position: int = 0
+        position: float = 0
         while True:
             for led in range(self.led_count[strip]):
-                self.leds[self.led_strip[strip]][self.start[strip] + led] = intermediate_colors[int((len(intermediate_colors) - 1) / (abs(sin(frequency * min(abs(position - led) / length, (self.led_count[strip] - abs(position - led)) / length))) + 1))] # type: ignore
-            position = position + 1 if position < self.led_count[strip] else 0
+                colors_length: int = len(intermediate_colors) - 1
+                closest_position: float = abs(position - led)
+                distance: float = min(closest_position, self.led_count[strip] - closest_position)
+                equation = int(colors_length - colors_length * distance / length)
+                self.leds[self.led_strip[strip]][self.start[strip] + led] = intermediate_colors[equation] # type: ignore
+                print(equation)
+            position = position + 1 / length if position < self.led_count[strip] else 0
             self.leds[self.led_strip[strip]].write()
-            await sleep(step_delay)
+            await sleep(step_delay / length)
 
 
 async def set_mode(controller: NeopixelController) -> None:
@@ -137,26 +140,26 @@ controller = NeopixelController()
 controller.configure(
     config={
         2: (
-            (2, {
-                "D": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
-                "E": lambda: controller.color_fade(0, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0),
-                "X": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
+            (20, {
+                "D": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "E": lambda: controller.color_fade(0, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "X": lambda: controller.chasing(0, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
                 "G": lambda: controller.static_color(0, (0, 255, 0), 1, True, "D"),
             }),
             (2, {
-                "D": lambda: controller.color_fade(1, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0),
-                "E": lambda: controller.chasing(1, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
-                "X": lambda: controller.color_fade(1, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0)
+                "D": lambda: controller.color_fade(1, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "E": lambda: controller.chasing(1, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "X": lambda: controller.color_fade(1, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
             }),
             (2, {
-                "D": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
-                "E": lambda: controller.color_fade(2, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0),
-                "X": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
+                "D": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "E": lambda: controller.color_fade(2, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "X": lambda: controller.chasing(2, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
             }),
             (2, {
-                "D": lambda: controller.color_fade(3, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0),
-                "E": lambda: controller.chasing(3, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 1),
-                "X": lambda: controller.color_fade(3, [(255, 0, 0), (0, 255, 0), (0, 0, 255)], 128, 0.01, 0)
+                "D": lambda: controller.color_fade(3, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "E": lambda: controller.chasing(3, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "X": lambda: controller.color_fade(3, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
             }),
         ),
     },
