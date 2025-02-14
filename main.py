@@ -89,6 +89,7 @@ class NeopixelController:
         mix: int,
         step_delay: float,
         length: int,
+        speed: int,
     ) -> None:
         intermediate_colors: "list[list[int]]" = [[int((1 - fade_step / mix) * rgb_1 + fade_step / mix * rgb_2) for rgb_1, rgb_2 in zip(base_color, chasing_color)] for fade_step in range(mix + 1)]
         position: float = 0
@@ -97,11 +98,11 @@ class NeopixelController:
                 colors_length: int = len(intermediate_colors) - 1
                 closest_position: float = abs(position - led)
                 distance: float = min(closest_position, self.led_count[strip] - closest_position)
-                equation = int(colors_length - colors_length * distance / length)
+                equation: int = int(colors_length - colors_length / max(length / distance, 1)) if distance != 0 else 0
                 self.leds[self.led_strip[strip]][self.start[strip] + led] = intermediate_colors[equation] # type: ignore
-            position = position + 1 / length if position < self.led_count[strip] else 0
+            position = position + 1 / mix if position < self.led_count[strip] else 0
             self.leds[self.led_strip[strip]].write()
-            await sleep(step_delay / length)
+            await sleep(step_delay / mix / speed)
 
 
 async def set_mode(controller: NeopixelController) -> None:
@@ -134,25 +135,10 @@ controller.configure(
     config={
         2: (
             (20, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
                 "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda pin: controller.chasing(pin, (pin, 0, 200), (200, 0, 200), 100, 0.1, 10),
+                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
                 "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
-            }),
-            (2, {
-                "D": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "E": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "X": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-            }),
-            (2, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-            }),
-            (2, {
-                "D": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "E": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10),
-                "X": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
             }),
         ),
     },
