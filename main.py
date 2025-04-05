@@ -14,7 +14,6 @@ class NeopixelController:
     ) -> None:
         self.leds: list[NeoPixel] = []
         self.start: list[int] = []
-        self.end: list[int] = []
         self.led_strip: list[int] = []
         self.led_count: list[int] = []
         self.tasks: "dict[int, list[tuple[str, None | Task[None]]]]" = {
@@ -32,12 +31,11 @@ class NeopixelController:
             for length, _ in info:
                 self.led_strip.append(count)
                 self.start.append(index)
-                self.end.append(index + length)
                 self.led_count.append(length)
                 index += length
 
     def choose_pattern(self) -> None:
-        for pin, tasks in self.tasks.items():
+        for start_position, (pin, tasks) in enumerate(self.tasks.items()):
             for count, task in enumerate(tasks):
                 if task[0] != self.character and self.modes[pin][count].get(self.character) != None:
                     if task[1] is not None:
@@ -45,7 +43,9 @@ class NeopixelController:
                             task[1].cancel()
                         except RuntimeError:
                             pass
-                    self.tasks[pin][count] = (self.character, create_task(self.modes[pin][count][self.character](count))) # type: ignore
+                    # print(self.start)
+                    # print(count)
+                    self.tasks[pin][count] = (self.character, create_task(self.modes[pin][count][self.character](start_position + count))) # type: ignore
 
     async def color_fade(
         self,
@@ -69,7 +69,7 @@ class NeopixelController:
         self,
         strip: int,
         color: "tuple[int, int, int]",
-        delay: int,
+        delay: int, 
         kill: bool,
         kill_mode: str,
     ) -> None:
@@ -92,10 +92,10 @@ class NeopixelController:
         speed: int,
     ) -> None:
         intermediate_colors: "list[list[int]]" = [[int((1 - fade_step / mix) * rgb_1 + fade_step / mix * rgb_2) for rgb_1, rgb_2 in zip(base_color, chasing_color)] for fade_step in range(mix + 1)]
+        colors_length: int = len(intermediate_colors) - 1
         position: float = 0
         while True:
             for led in range(self.led_count[strip]):
-                colors_length: int = len(intermediate_colors) - 1
                 closest_position: float = abs(position - led)
                 distance: float = min(closest_position, self.led_count[strip] - closest_position)
                 equation: int = int(colors_length - colors_length / max(length / distance, 1)) if distance != 0 else 0
@@ -134,13 +134,59 @@ controller = NeopixelController()
 controller.configure(
     config={
         2: (
-            (20, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
+            (45, {
+                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
                 "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
                 "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
                 "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
             }),
         ),
+        3: (
+            (45, {
+                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
+                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+                "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+            }),
+            # (5, {
+            #     "E": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.5, 10, 50),
+            #     "D": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+            #     "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+            #     "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+            # }),
+        ),
+        # 4: (
+        #     (45, {
+        #         "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
+        #         "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+        #         "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+        #         "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+        #     }),
+        # ),
+        # 5: (
+        #     (45, {
+        #         "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
+        #         "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+        #         "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+        #         "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+        #     }),
+        # ),
+        # 6: (
+        #     (45, {
+        #         "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
+        #         "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+        #         "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+        #         "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+        #     }),
+        # ),
+        # 7: (
+        #     (45, {
+        #         "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 50, 0.1, 5, 10),
+        #         "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+        #         "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
+        #         "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+        #     }),
+        # ),
     },
     character="D",
 )
