@@ -161,4 +161,3 @@ finally:
     for led in controller.leds:
         led.fill((0, 0, 0))
         led.write()
-    soft_reset()
