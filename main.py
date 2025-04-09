@@ -134,19 +134,11 @@ controller = NeopixelController()
 controller.configure(
     config={
         2: (
-            (45, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
-                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
-                "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+            (21, {
+                "D": lambda pin: controller.color_fade(pin, ((0, 0, 200), (200, 0, 200)), 20, 0.2, 0.15),
             }),
-        ),
-        3: (
-            (45, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
-                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
-                "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+            (21, {
+                "D": lambda pin: controller.color_fade(pin, ((0, 0, 200), (200, 0, 200)), 20, 0.2, 0.15),
             }),
         ),
     },
