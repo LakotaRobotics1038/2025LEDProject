@@ -12,7 +12,6 @@ The LED project for FRC team 1038
 2. Install MicroPico extension from the workspace recommended
 3. `CTRL+SHIFT+P` and run `MicroPico: Configure project`
 
-## Troubleshooting
+## Configuration
 
-- If this is not the first time that program has been flashed, empty the flash memory [here](https://datasheets.raspberrypi.com/soft/flash_nuke.uf2) and re-flash the program [here](https://micropython.org/download/RPI_PICO/).
-- If the animation does not start, disconnect the Pico from all sources of power and plug it back in. This includes the USB port and GPIO pins.
+To configure the LEDs, edit the parameter in the `configure` function on the `NeopixelController` object. On the `config` parameter, add the port number as the key and a tuple as the object. The values inside this tuple will be the 

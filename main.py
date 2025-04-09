@@ -1,10 +1,9 @@
 from uasyncio import sleep, run, create_task
 from asyncio import Task
-from umachine import Pin, UART, soft_reset
+from umachine import Pin, UART
 from neopixel import NeoPixel
 from usys import stdin, print_exception
 from uselect import poll, POLLIN
-from rp2 import bootsel_button
 
 class NeopixelController:
     def configure(
@@ -43,8 +42,6 @@ class NeopixelController:
                             task[1].cancel()
                         except RuntimeError:
                             pass
-                    # print(self.start)
-                    # print(count)
                     self.tasks[pin][count] = (self.character, create_task(self.modes[pin][count][self.character](start_position + count))) # type: ignore
 
     async def color_fade(
@@ -53,7 +50,6 @@ class NeopixelController:
         colors: "tuple[tuple[int, int, int], ...]",
         mix: int,
         step_delay: float,
-        delay: float,
     ) -> None:
         while True:
             for count in range(len(colors)):
@@ -63,7 +59,6 @@ class NeopixelController:
                         self.leds[self.led_strip[strip]][self.start[strip] + led] = intermediate_color # type: ignore
                     self.leds[self.led_strip[strip]].write()
                     await sleep(step_delay)
-            await sleep(delay)
 
     async def static_color(
         self,
@@ -111,12 +106,6 @@ async def set_mode(controller: NeopixelController) -> None:
     select_poll.register(stdin, POLLIN)
 
     while True:
-        if bootsel_button() == 1:
-            for led in controller.leds:
-                led.fill((0, 0, 0))
-                led.write()
-            soft_reset()
-
         if uart.any() > 0:
             received_input = uart.read(1).decode("utf-8")
             if received_input != "\n":
@@ -134,11 +123,8 @@ controller = NeopixelController()
 controller.configure(
     config={
         2: (
-            (45, {
-                "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
-                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
-                "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
-                "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
+            (42, {
+                "D": lambda pin: controller.color_fade(pin, ((0, 0, 255), (255, 0, 255)), 128, 0.01),
             }),
         ),
         3: (
@@ -161,3 +147,4 @@ finally:
     for led in controller.leds:
         led.fill((0, 0, 0))
         led.write()
+    soft_reset()
