@@ -130,7 +130,7 @@ controller.configure(
         3: (
             (45, {
                 "D": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 20, 0.01, 20, 50),
-                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01, 0),
+                "E": lambda pin: controller.color_fade(pin, ((255, 0, 0), (0, 255, 0), (0, 0, 255)), 128, 0.01),
                 "X": lambda pin: controller.chasing(pin, (0, 0, 200), (200, 0, 200), 100, 0.1, 10, 10),
                 "G": lambda pin: controller.static_color(pin, (0, 255, 0), 1, True, "D"),
             }),
@@ -147,4 +147,3 @@ finally:
     for led in controller.leds:
         led.fill((0, 0, 0))
         led.write()
-    soft_reset()
