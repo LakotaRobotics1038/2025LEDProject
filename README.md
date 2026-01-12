@@ -15,7 +15,7 @@ The LED project for FRC team 1038
 ## Configuration
 
 To configure the LEDs, edit the parameters in the `configure` function on the `NeopixelController` object:
-```
+```python
 controller = NeopixelController()
 controller.configure(
     ...
@@ -24,7 +24,7 @@ controller.configure(
 
 The configure function takes in a parameter as a dictionary to hold all the configuration information and another parameter to hold the current mode, represented as a letter. This dictionary accepts the port number as the key and a tuple as the object. The values inside this tuple will be the config of partitions of the LED strip.
 
-```
+```python
 controller = NeopixelController()
 controller.configure(
     {
@@ -47,7 +47,7 @@ controller.configure(
 
 Since the program allows for partitioning LED strips to run different effects on the same strip at once, each tuple representing the leds port has it's own set of tuples with two values: the number of LEDs with that configuration and the configuration applied to the selected LEDs, which is represented as a dictionary.
 
-```
+```python
 controller = NeopixelController()
 controller.configure(
     {
@@ -82,7 +82,7 @@ controller.configure(
 
 The dictionary configuration of each LED partition takes in a single character as the key and a lambda as the value. The single character key represents the trigger to the lambda. When the Pico receives a character, the lambda will activate if the received character matches with the key.
 
-```
+```python
 controller = NeopixelController()
 controller.configure(
     {
@@ -123,7 +123,7 @@ controller.configure(
 
 The lambda takes in one parameter: the pin. It calls a function on the `NeopixelController` object with the pin as its first parameter and the remaining configuration options proceeding it.
 
-```
+```python
 controller = NeopixelController()
 controller.configure(
     {
